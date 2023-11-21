@@ -1,0 +1,278 @@
+---
+title: "R for Data Science Skill A."
+author: "Yasemin Sucu"
+date: "2023-11-16"
+output:
+  html_document:
+    toc: true
+    toc_depth: 3
+    theme: readable 
+    number_sections: yes
+    toc_float:
+      collapsed: yes
+css: "styles.css"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Loading the libraries
+
+```{r}
+library(tidyverse)
+library(plotly)
+library(broom)
+library(styler)
+```
+
+# Reading the CSV file into a tibble
+
+```{r}
+gapminder_data <- read.csv("/Users/yasemindilarasucu/Desktop/gapminder_data_ys/gapminder_clean.csv")
+```
+
+Filtering the Data by the year 1962
+
+```{r}
+filtered_data_1962 <- gapminder_data %>%
+  filter(Year == 1962)
+```
+
+Creating a Scatter plot
+
+```{r}
+ggplot(filtered_data_1962, aes(x = " CO2 emissions (metric tons per capital) ", y = gdpPercap)) +
+  geom_point() +
+  labs(
+    title = "Scatter Plot of CO2 Emissions vs. GDP per Capita (1962)",
+    x = "CO2 Emissions (metric tons per capita)",
+    y = "GDP per Capita"
+  )
+```
+
+Checking for the missing values in the dataset
+
+```{r}
+summary(gapminder_data)
+```
+
+```{r}
+summary(filtered_data_1962)
+```
+
+Imputing the NA values for the columns of CO2 Emissions (metric tons per capita and GDP per Capita
+
+```{r}
+filtered_data_1962_imputed <- filtered_data_1962 %>%
+  mutate(
+    "CO2 Emissions (metric tons per capita)" = ifelse(
+      is.na("CO2 Emissions (metric tons per capita)"),
+      mean("CO2 Emissions (metric tons per capita)", na.rm = TRUE),
+      "CO2 Emissions (metric tons per capita)"
+    ),
+    gdpPercap = ifelse(
+      is.na(gdpPercap),
+      mean(gdpPercap, na.rm = TRUE),
+      gdpPercap
+    )
+  )
+```
+
+#  Making a scatter plot with the modified dataset
+
+```{r}
+p <- ggplot(filtered_data_1962_imputed, aes(x = `CO2.emissions..metric.tons.per.capita.`, y = gdpPercap, color = continent)) +
+  geom_point() +
+  labs(
+    title = "Scatter Plot of CO2 Emissions vs. GDP per Capita (1962)",
+    x = "CO2 Emissions (metric tons per capita)",
+    y = "GDP per Capita"
+  )
+
+#applying a theme 
+
+p + theme_classic()
+
+```
+
+#  Calculating the correlation in between CO2 emissions (metric tons per capita) and gdpPercap, and p-value.
+
+```{r}
+correlation_result <- cor.test(filtered_data_1962_imputed$`CO2.emissions..metric.tons.per.capita.`,
+  filtered_data_1962_imputed$gdpPercap,
+  method = "pearson"
+)
+
+print(correlation_result)
+```
+
+#  In what year is the correlation between 'CO2 emissions (metric tons per capita)' and gdpPercap the strongest?
+
+```{r}
+# Finding the year with the strongest correlation
+
+correlation_results <- lapply(unique(gapminder_data$Year), function(year) {
+  subset_data <- gapminder_data %>% filter(Year == year)
+  correlation_result <- cor.test(subset_data$`CO2.emissions..metric.tons.per.capita.`,
+    subset_data$gdpPercap,
+    method = "pearson"
+  )
+  return(data.frame(Year = year, correlation = correlation_result$estimate))
+})
+
+correlation_results_df <- do.call(rbind, correlation_results)
+strongest_correlation_year <- correlation_results_df[which.max(correlation_results_df$correlation), "Year"]
+
+# Filtering the data for the year of the strongest correlation
+
+filtered_data_strongest_correlation <- gapminder_data %>% filter(Year == strongest_correlation_year)
+```
+
+#  Creating an interactive scatter plot with plotly for comparing 'CO2 emissions (metric tons per capita)' and gdpPercap.
+
+```{r}
+# Creating a scatter-plot with ggplot2 with the filtered data from the previous step
+
+gg_plot <- ggplot(filtered_data_strongest_correlation, aes(x = `CO2.emissions..metric.tons.per.capita.`, y = gdpPercap, size = pop, color = continent)) +
+  geom_point() +
+  labs(
+    title = "Interactive Scatter Plot with Plotly",
+    x = "CO2 Emissions (metric tons per capita)",
+    y = "GDP per Capita"
+  )
+
+# Converting ggplot2 plot to plotly
+
+plotly_plot <- ggplotly(gg_plot)
+
+plotly_plot
+```
+
+# Questions
+
+1.  What's the relationship in between the continent and ' Energy use (kg of oil equivalent per capita)' ?
+
+```{r}
+# Checking the significancy with ANOVA test
+
+anova_result <- aov(`Energy.use..kg.of.oil.equivalent.per.capita.` ~ continent, data = gapminder_data)
+
+summary(anova_result)
+```
+
+Commenting on the results that the analysis shows that there are significant differences in Energy use among the different continents.
+
+Visualization:
+
+```{r}
+# Interactive Boxplot
+
+plot_ly(gapminder_data, x = ~continent, y = ~`Energy.use..kg.of.oil.equivalent.per.capita.`, type = "box") %>%
+  layout(
+    title = "Energy Use Across Continents",
+    xaxis = list(title = "Continent"),
+    yaxis = list(title = "Energy Use (kg of oil equivalent per capita)")
+  )
+```
+
+2.  Is there a significant difference between Europe and Asia with respect to 'Imports of goods and services (% of GDP)' in the years after 1990?
+
+```{r}
+# Checking unique levels of the 'continent' variable
+unique(gapminder_data$continent)
+```
+
+```{r}
+# Filter data for non-empty continents and years after 1990
+filtered_data_after_1990_cleaned <- gapminder_data %>%
+  filter(Year > 1990, continent %in% c("Asia", "Europe", "Africa", "Americas", "Oceania"))
+
+# Explicitly set factor levels for 'continent'
+filtered_data_after_1990_cleaned$continent <- factor(filtered_data_after_1990_cleaned$continent, levels = c("Asia", "Europe"))
+
+# Check unique levels of the 'continent' variable
+unique(filtered_data_after_1990_cleaned$continent)
+```
+
+```{r}
+# Using the t-test for to compare the means of "Import of goods and services (% of GDP)" between Europe and Asia after 1990
+
+t_test_result <- t.test(`Imports.of.goods.and.services....of.GDP.` ~ continent, data = filtered_data_after_1990_cleaned)
+
+t_test_result
+```
+
+#According the t-test results that there is no significant difference in the means of "Import of goods and services (% of GDP)" between Europe and Asia after 1990, the p-value is 0.1776, which is greater than the typical significance level of 0.05. Therefore, there is no enough evidence to reject the null hypothesis that true difference in means between Asia and Europe is equal to 0.
+
+Visualization
+
+```{r}
+# Interactive Bar Plot
+plot_ly(filtered_data_after_1990_cleaned, x = ~continent, y = ~`Imports.of.goods.and.services....of.GDP.`, type = "bar") %>%
+  layout(
+    title = "Imports of Goods and Services (% of GDP) - Europe vs. Asia (After 1990)",
+    xaxis = list(title = "Continent"),
+    yaxis = list(title = "Imports (% of GDP)")
+  )
+```
+
+3.  What is the country (or countries) that has the highest 'Population density (people per sq. km of land area)' across all years? (i.e., which country has the highest average ranking in this category across each time point in the dataset?)
+
+```{r}
+# Since there is no need for a statistical test for this question, instead let's calculate the Population Density for each country across all years and identify the one with the highest average.
+
+# Calculate average 'Population Density' for each country
+average_population_density <- gapminder_data %>%
+  group_by(Country.Name) %>%
+  summarize(avg_population_density = mean(`Population.density..people.per.sq..km.of.land.area.`, na.rm = TRUE)) %>%
+  arrange(desc(avg_population_density))
+
+# Display the country with the highest average population density
+head(average_population_density, 1)
+```
+
+Visualization
+
+```{r}
+# Interactive Bar Plot
+plot_ly(average_population_density, x = ~Country.Name, y = ~avg_population_density, type = "bar") %>%
+  layout(
+    title = "Average Population Density Across All Years",
+    xaxis = list(title = "Country"),
+    yaxis = list(title = "Average Population Density")
+  )
+```
+
+4.  What country (or countries) has shown the greatest increase in 'Life expectancy at birth, total (years)' between 1962 and 2007?
+
+```{r}
+# Since there is no need for statistical test for this one, let's calculate the difference in "Life expectancy in between 1962 and 2007 for each country and identifying the one with he greatest increase.
+
+# Calculate the difference in life expectancy between 1962 and 2007 for each country
+life_expectancy_difference <- gapminder_data %>%
+  filter(Year %in% c(1962, 2007)) %>%
+  group_by(Country.Name) %>%
+  summarize(difference = diff(`Life.expectancy.at.birth..total..years.`)) %>%
+  arrange(desc(difference))
+
+# Display the country with the greatest increase in life expectancy
+head(life_expectancy_difference, 1)
+```
+
+Visualization
+
+```{r}
+# Create an interactive scatter plot
+plot_ly(
+  data = life_expectancy_difference, x = ~difference, y = ~Country.Name, type = "scatter", mode = "markers",
+  marker = list(color = ~difference, colorscale = "Viridis"),
+  text = ~ paste("Country: ", Country.Name, "<br>Life Expectancy Difference: ", round(difference, 2))
+) %>%
+  layout(
+    title = "Difference in Life Expectancy (2007 - 1962) for Each Country",
+    xaxis = list(title = "Life Expectancy Difference"),
+    yaxis = list(title = "Country"),
+    hovermode = "closest"
+  )
+```
