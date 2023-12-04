@@ -1,0 +1,128 @@
+---
+title: "answers.linux.training.bio"
+author: "Yasemin Sucu"
+date: "2023-11-28"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Q1. What is your home directory?
+A1. /home/ubuntu
+
+Q2. Change to the my_folder/ directory and then type ls. Q2. What is the output of this command? What is the output of this command?
+A2. hello_world.txt
+
+Q3: Delete my_folder/hello_world.txt and then list the contents of my_folder and my_folder2 with ls. Q3. What is the output of each ls command?
+A3: nothing left for my_folder, hello_world.txt for my_folder2 
+
+Q4: List the contents of my_folder/, my_folder2/, and my_folder3. Q4. What is the output of each?
+A4: nothing left for the my_folder and my_folder2 ,hello_world.txt for my_folder3
+
+Q5. What editor did you use and what was the command to save your file changes?
+A5. I used nano to edit the file (nano hello_world.txt) then writeout the changes with ^O (Command+O)
+
+Q6. Finally, close your ssh client. Re-open it and then connect again with the username sudouser but with ALL other connection settings the same as before. This should lead to an error. Q6. What is the error?
+A6. The error is about the private key since it is not accosiated with the new user created as sudouser. $ ssh -i ~/Desktop/bioinformatics.pem sudouser@ec2-54-219-157-13.us-west-1.compute.amazonaws.com
+sudouser@ec2-54-219-157-13.us-west-1.compute.amazonaws.com: Permission denied (publickey). 
+
+Q7. What was the solution?
+A7. Generated a key pair as public and private locally to give an accession to sudouser (ssh-keygen -t rsa -b 2048 -f ~/Desktop/sudouser_key), next copied the public key to the server for sudouser(cat ~/Desktop/sudouser_key.pub | ssh -i /Users/yasemindilarasucu/Desktop/bioinformatics.pem ubuntu@ec2-54-219-157-13.us-west-1.compute.amazonaws.com "sudo -u sudouser mkdir -p /home/sudouser/.ssh && sudo -u sudouser tee -a /home/sudouser/.ssh/authorized_keys"
+), next gave a permission on the server with ssh -i /Users/yasemindilarasucu/Desktop/bioinformatics.pem ubuntu@ec2-54-219-157-13.us-west-1.compute.amazonaws.com "sudo chmod 700 /home/sudouser/.ssh && sudo chmod 600 /home/sudouser/.ssh/authorized_keys && sudo chown -R sudouser:sudouser /home/sudouser/.ssh",  as the final step connected to the server with the new username using the new key pair (ssh -i ~/Desktop/sudouser_key sudouser@ec2-54-219-157-13.us-west-1.compute.amazonaws.com
+)
+
+Q8. What does the sudo docker run part of the command do? and what does the salmon swim part of the command do?
+A8. Docker run command creates and runs a new container from an image. Salmon swim command, it performs a super secret operation! I am curious what is that! From the code that they shared it looks like swim command is only associated with the function called salmonSwim which returns the ASCII art.
+
+
+Q9. Try running sudo ls /root, What is the output of this command?
+A9. serveruser@ip-172-31-9-82:~$ sudo ls /root
+[sudo] password for serveruser: 
+serveruser is not in the sudoers file.  This incident will be reported.
+
+Q10. What is the output of flask --version?
+A10. Python 3.10.12
+Flask 3.0.0
+Werkzeug 3.0.1
+
+Q11. What is the output of mamba -V?
+A11. conda 23.3.1
+
+Q12. What is the output of which python?
+A12. /home/serveruser/miniforge3/envs/py27/bin/python
+
+Q13. What is the output of which python now?
+A13. /home/serveruser/miniforge3/bin/python
+
+Q14. What is the output of salmon -h?
+A14. salmon v1.4.0
+
+Usage:  salmon -h|--help or 
+        salmon -v|--version or 
+        salmon -c|--cite or 
+        salmon [--no-version-check] <COMMAND> [-h | options]
+
+Commands:
+     index      : create a salmon index
+     quant      : quantify a sample
+     alevin     : single cell analysis
+     swim       : perform super-secret operation
+     quantmerge : merge multiple quantifications into a single file
+     
+     
+Q15. What does the -o athal.fa.gz part of the command do? 
+A15. -o specifies the output fie, and the output file will be saved as "athal.fa.gz"
+
+Q16. What is a .gz file?
+A16. .gz file is a compressed file that used gzip to compressed 
+
+Q17. What does the zcat command do?
+A17. zcat does the same thing what cat command does, but zcat is specifically for displaying the contents of the compressed files by gzip.
+
+Q18. What does the head command do?
+A18. Displays the first 10 lines of the file.
+
+Q19. What does the number 100 signify in the command?
+A19. Displays the first 100 lines of the file.
+
+Q20. What is | doing? -- Hint using | in Linux is called "piping"
+A20. Pipe is used for creating a sequence of operations via connecting the output of one command to input of an another command. 
+
+Q21. What is a .fa file? What is this file format used for?
+A21. .fa refers to FASTA format, this format is used for storing the sequence data. 
+
+Q22. What format are the downloaded sequencing reads in? 
+A22. SRR074122.sra, SRA(Sequence Read Archive)format is the SRA Normalized format which is the original format containing the full base quality scores, base calls and alignments of the sequencing reads. This format is relying on SRA toolkit to work with, for example we can use the sra toolkit to turn SRA format to FASTA format which is more commonly used. 
+
+Q23. What is the total size of the disk?
+A23. 7.6 GB
+
+Q24. How much space is remaining on the disk?
+A24. 1.7 GB
+
+Q25. Convert the reads to fastq format using this command: fastq-dump SRR074122. This should produce an error. What went wrong?
+A25. There is nothing in the generated error report but this was the error message I've got: An error occurred during processing.
+A report was generated into the file '/home/serveruser/ncbi_error_report.txt'.
+If the problem persists, you may consider sending the file
+to 'sra-tools@ncbi.nlm.nih.gov' for assistance.
+Example of the errors for when the fastq-dump command was running: 
+2023-11-30T20:59:30 fastq-dump.2.11.0 err: storage exhausted while writing file within file system module - system bad file descriptor error fd='5'
+2023-11-30T20:59:30 fastq-dump.2.11.0 err: storage exhausted while writing file within file system module - failed SRR074122
+etc...
+
+Q26: What was your solution?
+A26: Seems like the issue was deriving from the capacity of the storage amount, compressing the file would resolve the storage related issue, so instead doing this: fastq-dump SRR074122 --gzip
+
+
+ 
+ 
+
+
+
+
+
+
+
+
