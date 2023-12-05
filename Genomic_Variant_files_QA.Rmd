@@ -1,0 +1,32 @@
+---
+title: "Genomic_Variant_files"
+author: "Yasemin Sucu"
+date: "2023-12-04"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Q1: How many positions are found in this region in the VCF file?
+A1: There are 69 positions in the  (1:1105411-44137860) chromosomal region in this VCF file.(tabix -h ~/Desktop/CEU.exon.2010_03.genotypes.vcf.gz 1:1105411-44137860 | grep -v '^#' | wc -l)
+
+Q2: How many samples are included in the VCF file?
+A2: There 90 samples. (bcftools query -l ~/Desktop/CEU.exon.2010_03.genotypes.vcf.gz | wc -l)
+
+Q3: How many positions are there total in the VCF file?
+A3: There are 3489 positions. (bcftools query -f '%POS\n' ~/Desktop/CEU.exon.2010_03.genotypes.vcf.gz | wc -l)
+
+Q4: How many positions are there with AC=1? Note that you cannot simply count lines since the output of bcftools filter includes the VCF header lines. You will need to use bcftools query to get this number.
+A4: 1075. (bcftools filter -i 'AC=1' ~/Desktop/CEU.exon.2010_03.genotypes.vcf.gz | bcftools query -f '%CHROM %POS\n' | wc -l
+)
+
+Q5: What is the ratio of transitions to transversions (ts/tv) in this file?
+A5: 3.47
+$ bcftools stats ~/Desktop/CEU.exon.2010_03.genotypes.vcf.gz | grep "TSTV"
+# TSTV, transitions/transversions:
+# TSTV	[2]id	[3]ts	[4]tv	[5]ts/tv	[6]ts (1st ALT)	[7]tv (1st ALT)	[8]ts/tv (1st ALT)
+TSTV	0	2708	781	3.47	2708	781	3.47
+
+

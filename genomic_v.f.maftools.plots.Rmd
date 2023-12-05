@@ -1,0 +1,56 @@
+---
+title: "genomic.v.f.maftools.plots"
+author: "Yasemin Sucu"
+date: "2023-12-05"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+# Load the maftools package
+library(maftools)
+```
+
+
+```{r}
+# Load the LGG cohort from TCGA
+lgg <- tcgaLoad(study = "LGG")
+
+# Extract the number of variants per sample
+variants_per_sample <- sapply(lgg@data$Tumor_Sample_Barcode, function(sample_id) {
+  nrow(subset(lgg@data, Tumor_Sample_Barcode == sample_id))
+})
+
+# Get the median number of variants per sample
+median_variants_per_sample <- median(variants_per_sample)
+
+# Print the result
+cat("Median number of variants per sample:", median_variants_per_sample, "\n")
+
+```
+
+1. An oncoplot of the top five mutated genes
+
+```{r}
+#Oncoplot for top five mutated genes.
+oncoplot(maf = lgg, top = 5)
+```
+
+2. A boxplot of the transistion-to-transversion ratio(Ti/Tv)
+
+```{r}
+lgg.titv = titv(maf = lgg, plot = FALSE, useSyn = TRUE)
+#plot titv summary
+plotTiTv(res = lgg.titv)
+```
+
+
+3. A plot comparing the mutation load in this LGG cohort to other TCGA cohorts. Use log scale.
+
+```{r}
+lgg.mutload = tcgaCompare(maf = lgg, cohortName = 'Example-lgg', logscale = TRUE, capture_size = 50)
+```
