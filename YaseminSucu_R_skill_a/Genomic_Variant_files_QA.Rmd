@@ -29,4 +29,25 @@ $ bcftools stats ~/Desktop/CEU.exon.2010_03.genotypes.vcf.gz | grep "TSTV"
 # TSTV	[2]id	[3]ts	[4]tv	[5]ts/tv	[6]ts (1st ALT)	[7]tv (1st ALT)	[8]ts/tv (1st ALT)
 TSTV	0	2708	781	3.47	2708	781	3.47
 
+Q6: What is the median number of variants per sample in this data set?
+A6: Median number of variants per sample: 63 
+
+in R :
+# Load the maftools package
+library(maftools)
+
+# Load the LGG cohort from TCGA
+lgg <- tcgaLoad(study = "LGG")
+
+# Extract the number of variants per sample
+variants_per_sample <- sapply(lgg@data$Tumor_Sample_Barcode, function(sample_id) {
+  nrow(subset(lgg@data, Tumor_Sample_Barcode == sample_id))
+})
+
+# Get the median number of variants per sample
+median_variants_per_sample <- median(variants_per_sample)
+
+# Print the result
+cat("Median number of variants per sample:", median_variants_per_sample, "\n")
+
 
